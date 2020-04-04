@@ -1,0 +1,29 @@
+#
+# USENET news 
+#
+R-usenet        alt bit biz comp news rec sci talk misc
+
+#
+# TELEPUTING HOTLINE
+#
+R-teleputing    relcom.teleputing
+
+#
+# ADMIN GROUP - free
+#
+R-postmasters   relcom.postmasters
+
+#
+# Comercial RELCOM groups
+#
+R-commerce      relcom.commerce
+
+#
+# Other RELCOM groups
+#
+R-relcom        relcom
+
+#
+# Ukrainian groups
+#
+R-ukraine       ukr uuug

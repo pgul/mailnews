@@ -1,0 +1,165 @@
+#! /usr/bin/perl
+
+use GDBM_File;
+
+$OTLUPDB="/usr/mnews/lib/bouncedb";
+
+$ENV{'PATH'} = "/bin:/usr/bin";
+delete @ENV{'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
+
+while (<>)
+{
+  last if (/^\n?$/);
+  if (/^\s/)
+  { $lastline=pop(@header);
+    $lastline .= $_;
+    push(@header, $lastline);
+  }
+  else
+  { push(@header, $_);
+  }
+}
+
+foreach (@header)
+{
+  if (/^Subject:/)
+  {
+    $otlup="yes" unless $otlup eq "no";
+    next if /Delivering Errors/;
+    next if /Execution failed/;
+    next if /Returned mail: /;
+    next if /UUCP notification/;
+    next if /DELIVERY FAILURE:/;
+    next if /Execution request failed:/;
+    if (/Warning: could not send message/)
+    { $todevnull=1;
+      next;
+    }
+    $otlup="no";
+    next;
+  }
+  if (/^From:/)
+  {
+    unless ($domain)
+    { $domain = $_;
+      $domain =~ s/^From://;
+      $domain =~ s/\(.*\)//g;
+      $domain=$1 if $domain =~ /^.*<(.*)>.*$/;
+      $otlup="no" unless $domain =~ /^\s*(Mailer-Daemon|uucp)\@/i;
+      $domain=$1 if $domain =~ /\@([-_\w.]+)/;
+    }
+    next;
+  }
+}
+
+if ($otlup ne "yes" || $domain eq "")
+{ # resend to newsmaster
+  open (F, "| /usr/bin/sendmail -i -oem newsmaster") || die "Can't exec sendmail: $!";
+  foreach $line (@header)
+  {
+    print F $line;
+  }
+  print F "\n";
+  print F $_ while (<>);
+  close F;
+  exit 0;
+}
+
+while (<>)
+{
+  chomp();
+  unless ($gotaddress)
+  {
+    $todevnull=1 if /Message( is)? too large/;
+  }
+  if ($waitforuser)
+  {
+    s/^\s+//;
+    s/\s+$//;
+    next if /^$/;
+    s/^rmail //;
+    if (/\s/)
+    { $waitforuser=0;
+      next;
+    }
+    $_=$1 if /^.*<(.*)>.*$/;
+    $_=$1 if /([-_\w\@.]+)/;
+    push(@users, $_);
+    next;
+  }
+  if (/^Unknown local user name\(s\):$/)
+  {
+    $waitforuser=1;
+    next;
+  }
+  if (/^I can\'t deliver your message to:$/)
+  {
+    $waitforuser=1;
+    next;
+  }
+  if (/The following addresses had permanent fatal errors/)
+  {
+    $waitforuser=1;
+    next;
+  }
+  if (/^Execution request failed:$/)
+  { $waitforuser=1;
+    next;
+  }
+  if (/^was not delivered to:$/)
+  { $waitforuser=1;
+    next;
+  }
+  if (/^It is$/)
+  { $waitforuser=1;
+    next;
+  }
+  unless ($gotaddress)
+  {
+    if (/^To: /)
+    {
+      $gotaddress=1;
+      s/^To: //;
+      next unless /^\S+\@\S+$/;
+      $_ = $1 if /^.*<(.*)>.*$/;
+      next if /^netters\@/;
+      @users=();
+      push(@users, $_) if /([-_\w\@.]+)/;
+    }
+  }
+}
+
+exit 0 if $todevnull;
+
+tie(%OTLUPDB, 'GDBM_File', $OTLUPDB, &GDBM_READER | &GDBM_WRITER, 0644) ||
+  tie (%OTLUPDB, 'GDBM_File', $OTLUPDB, &GDBM_WRCREAT, 0644) ||
+#  die "Cannot open bounce db: $!";
+  exit(0);
+
+foreach $user (@users)
+{ $user .= "\@".$domain unless $user =~ /\@/;
+  $user =~ tr/[A-Z]/[a-z]/;
+  ($sec,$min,$hour,$mday,$mon,$year)=localtime;
+  open (F, ">>/var/log/news/otlup");
+  @month=qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+  printf F "%02d %s %02d:%02d:%02d bounced mail to %s\n",
+       $mday, $month[$mon], $hour, $min, $sec, $user;
+  $OTLUPDB{$user}++;
+  if ($OTLUPDB{$user} == 10)
+  {
+    print F "*** User $user removed from mailnews database\n";
+# insecure
+    system("/usr/bin/sdba rmuser $user 2>&1 | /bin/mail -s \" user $user removed for undelivirable mail\" newsmaster");
+    $OTLUPDB{$user} = 12;
+#    delete ($OTLUPDB{$user});
+  }
+  elsif ($OTLUPDB{$user} > 10)
+  {
+    $OTLUPDB{$user} = 12;
+  }
+  close F;
+}
+
+untie(%OTLUPDB);
+exit 0;
+

@@ -1,0 +1,307 @@
+#! /usr/bin/perl
+
+use GDBM_File;
+use POSIX;
+
+$approved='newsmaster@lucky.net';
+$log="/var/log/news/linux2news.log";
+$inews="/usr/bin/inews -h >> $log 2>&1";
+$sendmail="/usr/lib/sendmail -oi lucky-linux\@news.lucky.net";
+$newsgroup=$ARGV[0];
+$crosspostsdb="/usr/local/news/db/maillists/crossposts";
+$queuepath="/usr/local/news/db/maillists";
+$waittime=60*5;
+
+$inheader=1;
+$inskiphdr=0;
+$wassubject=0;
+$wasorganization=0;
+$wasreplyto=0;
+$wasencodong=0;
+$wasdate=0;
+
+if ($ARGV[0] eq "showqueue")
+{
+	showqueue();
+	exit 0;
+}
+
+system("date >> $log");
+
+if ($ARGV[0] eq "checkqueue")
+{
+	tolog("check queue");
+	checkqueue();
+	exit 0;
+}
+
+while (<STDIN>)
+{
+	if ($inheader)
+	{
+		if (/^\n$/)
+		{
+			$inheader=0;
+			if ($to)
+			{
+				$to =~ s/(\([^\(\)]*),/$1%44/g;
+				1 while $to =~ s/^([^\"]*\"[^\"]*\")*([^\"]*\"[^\"]*),/$1$2%44/g;
+				@to = split(',',$to);
+				foreach $addr (@to)
+				{
+					$addr =~ s/(\([^\(\)]*)%44/($1,)/g;
+					1 while $addr =~ s/^([^\"]*\"[^\"]*\")*([^\"]*\"[^\"]*)%44/$1$2,/g;
+					$email = "";
+					$realname = "";
+					if ($addr =~
+/^((?{ $cnt = 0; })
+(?:
+   \(   (?{ local $cnt = $cnt + 1 })
+  |\)   (?(?{ $cnt <= 0 })(?!)) (?{ local $cnt = $cnt - 1 })
+  |[^()]
+)*
+(?(?{ $cnt != 0 })(?!)))<([^()<>]*)>/x)
+					{	$email = $2;
+						$realname = $1 . $';
+					}
+					else
+					{
+						$email = $addr;
+						while ($email =~ 
+/\(((?{ $cnt = 0; })
+(?:
+   \(   (?{ local $cnt = $cnt + 1 })
+  |\)   (?(?{ $cnt <= 0 })(?!)) (?{ local $cnt = $cnt - 1 })
+  |[^()]
+)*
+(?(?{ $cnt != 0 })(?!)))\)/x)
+
+						{
+							$realname .= " " if $realname;
+							$realname .= $1;
+							$email = $` . $';
+						}
+					} 
+					$email =~ s/^\s+//;
+					$email =~ s/\s+$//;
+					$realname =~ s/^\s+//;
+					$realname =~ s/\s+$//;
+					$realname = $email unless $realname;
+					$realname =~ s/^\"([^\"]*)\"$/$1/;
+					$realname =~ s/^\'([^\"]*)\'$/$1/;
+					if ($email =~ /^(linux|freebsd)-/i)
+					{	push(@email,$email);
+					} elsif ($email =~ /freebsd\.org$|\@vger\.rutgers\.edu$/i)
+					{	push(@email,$email);
+						push(@realname,$realname);
+					} else
+					{	push(@realname,$realname);
+					}
+				}
+				if (@realname)
+				{	$realname=$realname[0];
+					push(@header,"X-Comment-To: $realname\n");
+				}
+			}
+			if ($newsgroup && (@email > 1))
+			{
+				unless (tie(%maillists, 'GDBM_File', $crosspostsdb, &GDBM_READER|&GDBM_WRITER, 0644))
+				{
+					if ($! == ENOENT)
+					{
+						tie(%maillists, 'GDBM_File', $crosspostsdb, &GDBM_WRCREAT, 0644) || mydie("Can't create db: $!");
+					} elsif ($! == EAGAIN)
+					{
+						while (1)
+						{
+							sleep(1);
+							last if tie(%maillists, 'GDBM_File', $maillistsdb, &GDBM_READER|&GDBM_WRITER, 0644);
+							mydie("Can't open db: $!") if $! != EAGAIN;
+						}
+					} else
+					{	mydie("Can't open db: $!");
+					}
+				}
+				if (defined($maillists{$msgid}))
+				{
+					($time,$fname,$newsgroups)=split(/ /,$maillists{$msgid});
+					$already = 0;
+					foreach (split(/,/,$newsgroups))
+					{	$already = 1 if $_ eq $newsgroup;
+					}
+					$newsgroups .= ",$newsgroup" unless $already;
+					$maillists{$msgid}=time . " $fname $newsgroups";
+					untie(%maillists);
+					while (<STDIN>) {};
+					tolog("$msgid in queue, set newsgroups to $newsgroups");
+					exit 0;
+				}
+				$i = time;
+				while ( -f "$queuepath/$i")
+				{	$i++;
+				}
+				$fname="$queuepath/$i";
+				open(OUT,">$fname") || mydie("Can't create $fname: $!");
+				$maillists{$msgid}=time . " $fname $newsgroup";
+				untie(%maillists);
+				tolog("$msgid queued, newsgroup $newsgroup");
+			}
+			elsif ($newsgroup)
+			{	open OUT, "|$inews" || mydie("Can't run inews\n");
+				tolog("$msgid posting to $newsgroup");
+			}
+			else
+			{	open OUT, "|$sendmail" || mydie("Can't run sendmail\n");
+				tolog("$msgid resend to master");
+			}
+			foreach (@header)
+			{	print OUT $_;
+			}
+			print OUT "Newsgroups: $newsgroup\n" if $newsgroup;
+			print OUT "Approved: $approved\n";
+			print OUT "Subject: <none>\n" unless $wassubject;
+			print OUT "Organization: unknown\n" unless $wasorganization;
+			print OUT "\n";
+			next;
+		}
+		if (/^[ \t]/)
+		{
+			$to .= $_ if $into;
+			push(@header,$_) unless $inskiphdr;
+			next;
+		}
+		$into = 0;
+		if (/^(Received|Cc|To|Apparently-To|Newsgroups):/i)
+		{
+			$inskiphdr=1;
+			if (/^(To|Cc):/i)
+			{	$into=1;
+				$to.="," if $to;
+				$to.=$';
+			}
+			next;
+		}
+		$inskiphdr=0;
+		if (/^(NNTP-Posting-Host|NNTP-Posting-Date|X-Complaints-To|X-Trace):/i)
+		{
+			$_ = "X-Orig-" . $_;
+		}
+		$msgid = $1 if /^Message-Id:\s*(<.*>)\s*$/i;
+		$wassubject=1 if /^Subject:/i;
+		$wasorganization=1 if /^Organization:/i;
+		if (/^Reply-To:/i)
+		{	if ($wasreplyto)
+			{	$inskiphdr=1;
+				next;
+			}
+			$wasreplyto=1;
+		}
+		if (/^Content-Transfer-Encodong:/i)
+		{	if ($wasencoding)
+			{	$inskiphdr=1;
+				next;
+			}
+			$wasencoding=1;
+		}
+
+		if (/^Date:/i)
+		{	if ($wasdate)
+			{	$inskiphdr=1;
+				next;
+			}
+			$wasdate=1;
+		}
+
+		if (/^From /)
+		{
+			if (/^From owner-(linux-.*)-outgoing\@vger\.rutgers\.edu/i ||
+			    /^From (linux-.*)-request\@redhat\.com/i ||
+			    /^From owner-(linux-.*)\@lists\..*\.linux\.org\.uk/i ||
+			    /^From owner-(freebsd-.*)\@FreeBSD\.ORG/i)
+			{
+				$newsgroup="lucky.$1";
+				$newsgroup=~tr/[A-Z]-/[a-z]./;
+			}
+			elsif ($newsgroups eq "")
+			{
+				s/^From /X-Sender: /;
+				push(@header,$_);
+			}
+			next;
+		}
+		push(@header,$_);
+		next;
+	}
+	print OUT $_;
+}
+if (close(OUT)==0)
+{
+	tolog("$msgid not posted to $newsgroup") if $?;
+	exit 0;
+#	exit $?/256 if $?/256;
+#	exit 2;
+}
+
+checkqueue();
+exit 0;
+
+sub checkqueue
+{
+    if (tie(%maillists,'GDBM_File',$crosspostsdb,&GDBM_READER | &GDBM_WRITER, 0644))
+    {
+	while (($msgid,$value) = each(%maillists))
+	{
+		($time,$fname,$newsgroups)=split(/ /,$value);
+		next if time-$time < $waittime;
+		$inhdr=1;
+		if (open(IN,"<$fname") && open(OUT,"|$inews"))
+		{
+			tolog("posting $msgid to $newsgroups from queue");
+			while (<IN>)
+			{	
+				if ($inhdr && /^Newsgroups:/i)
+				{	print OUT "Newsgroups: $newsgroups\n";
+					next;
+				}
+				elsif ($inhdr && /^\n$/)
+				{	$inhdr = 0;
+				}
+				print OUT $_;
+			}
+			close(OUT) ||
+			  tolog("$msgid not posted to $newsgroups");
+			close(IN);
+			unlink($fname);
+			delete($maillists{$msgid});
+		}
+	}
+	untie(%maillists);
+    }
+}
+
+sub showqueue
+{
+	tie(%maillists,'GDBM_File',$crosspostsdb,&GDBM_READER, 0644) ||
+		die "Can't open db: $!";
+	while (($msgid,$value) = each(%maillists))
+	{
+		print STDOUT "$msgid $value\n";
+	}
+	untie(%maillists);
+}
+
+sub mydie
+{
+	chomp($_[0]);
+	tolog($_[0]);
+	while (<STDIN>) {};
+	exit 0;
+}
+
+sub tolog
+{
+	local($str) = @_;
+	$str =~ s/([\\\'])/\\$1/g;
+	system("echo \'$str\' >> $log");
+}
+

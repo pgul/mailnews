@@ -1,0 +1,111 @@
+#! /usr/bin/perl
+
+use GDBM_File;
+
+$sendmail="/usr/bin/sendmail -i";
+$LINUXHIST="/usr/local/news/db/linux-approve/linuxhistory";
+
+$linux = "linux";
+while (<>)
+{
+	if (/^\s+.*\n/)
+	{	@header[@header-1] .= $_ unless $killline;
+		next;
+	}
+	if (/^(To:|Resent-|Cc:|Path:|Status:|Followup-To:|Received:|NNTP-)/i)
+	{	$killline=1;
+		next;
+	}
+	$newsgroups=$_ if /^Newsgroups:/i;
+	$killline=0;
+	$msgid=$1 if /^Message-Id:\s*(<.*>)\s*$/i;
+	push(@header, $_);
+	if ($_ eq "\n")
+	{
+		last if $newsgroups;
+		$referense=$msgid;
+		$msgid="";
+		@header=();
+		next;
+	}
+	if ((/^From:/i && $from eq "") || (/^Sender:/i && $referense eq ""))
+	{	s/^(From|Sender)://i;
+		s/\([^\(\)]*\)//g;
+		s/^.*<([^<>]*)>.*$/$1/;
+		$from=$1 if /^\s*([a-z0-9\-\._+]+\@[a-z0-9\-\._]+)\s*$/i;
+	}
+}
+$newsgroups=join("", grep(/^Newsgroups:/i, @header));
+$newsgroups=~s/^Newsgroups:\s*//gi;
+$newsgroups=~s/\s+//g;
+$referense=$msgid unless $referense;
+foreach (split(',', $newsgroups))
+{
+	next unless /^lucky\.(linux\.[a-z0-9.]+)$/ || /^lucky\.(freebsd\.[a-z0-9.]+)$/;
+	$_ = $1;
+	s/\./-/g;
+        if (/^linux-freshmeat$/)
+	{	$addrlist .= " freshmeat-news\@freshmeat.net";
+	}
+	elsif (/^linux-security$/)
+	{	$addrlist .= " linux-security\@redhat.com";
+	}
+	elsif (/^freebsd-/)
+	{	$addrlist .= " $_\@freebsd.org";
+		$linux = "freebsd";
+	}
+	else
+	{	$addrlist .= " $_\@vger.rutgers.edu";
+	}
+}
+$addrlist =~ s/^\s+//g;
+foreach (@header)
+{	if (/^Newsgroups:/i)
+	{	$a=$addrlist;
+		$a =~ s/\s+/,/g;
+		$_ = "To: $a\n";
+		next;
+	}
+}
+
+tie(%LINUXHIST,'GDBM_File',$LINUXHIST,&GDBM_READER | &GDBM_WRITER, 0644) || 
+  tie (%LINUXHIST, 'GDBM_File', $LINUXHIST, &GDBM_WRCREAT, 0644) ||
+  die "Cannot open database: $!";
+if ($LINUXHIST{$msgid})
+{	while (<>)
+	{}
+	untie %LINUXHIST;
+	exit 0;
+}
+$LINUXHIST{$msgid} = time;
+foreach (keys %LINUXHIST)
+{	delete $LINUXHIST{$_} if time-$LINUXHIST{$_}>7*24*3600;
+}
+untie %LINUXHIST;
+
+$from="usenet\@news.lucky.net" unless $from;
+open(F, "| $sendmail -f $from $addrlist") || die "Can't run sendmail: $!";
+#open(F, "| $sendmail -f $from gul") || die "Can't run sendmail: $!";
+foreach (@header)
+{	print F $_;
+}
+while (<>)
+{	print F $_;
+}
+close(F) || die "Can't send mail to $addrlist!\n";
+open(F, ">>/var/log/citycat/$linux-approve.log") || die "Can't write log: $!";
+$nowtime = localtime;
+print F "$nowtime $msgid sent to $addrlist\n";
+close(F);
+open(F, "| $sendmail lucky-$linux\@news.lucky.net") || die "Can't run sendmail: %!";
+#open(F, "| $sendmail gul\@news.lucky.net") || die "Can't run sendmail: %!";
+print F "From: lucky-$linux\@news.lucky.net\n";
+print F "Reply-To: lucky-$linux\@news.lucky.net\n";
+print F "To: lucky-$linux\@news.lucky.net\n";
+print F "Subject: $newsgroups approved $msgid\n";
+print F "Referenses: $referense\n";
+print F "In-Reply-To: $referense\n";
+print F "\nsubj\n";
+close(F);
+exit(0);
+

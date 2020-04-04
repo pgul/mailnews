@@ -1,0 +1,78 @@
+Use of command LIST, ILIST and ULIST.
+
+All form of LIST without any parameters sent this help file. If you
+want to get list of accesseble groups you must specify hierarchies what
+are yuo want to get or specify ALL if you want to get full list
+of groups (note, this list may be very big).
+
+There are folowing hierarchies on the server (there only top level
+names of hierarchies):
+
+alt
+alt.binaries
+bel
+bionet
+biz
+borland
+bukovina
+can
+citycat
+comp
+crimea
+cs-monolit
+de
+dnepr
+donbass
+elvisti
+eunet
+fido7
+fr
+gnu
+ieee
+it
+kharkov
+kherson
+kiev
+lucky
+medlux
+microsoft
+misc
+news
+nikolaev
+odessa
+pl
+rec
+relcom
+relcom.commerce
+ru.aviso
+sci
+sita
+soc
+speleo
+sumy
+talk
+tor
+ukr
+ukr.commerce
+ural
+
+In command LIST (ILIST, ULIST) you may specify more than one hierarchy,
+for example:
+
+LIST relcom ukr
+
+Also you may refuse from hierarchy of lower level if you specify higher
+level hierarchy - you must set the '!' sign before name of this hierarchy,
+for example:
+
+LIST relcom !relcom.commerce
+
+LIST relcom !relcom.comp !relcom.commerce.food
+
+LIST all !alt !comp
+
+The ILIST command differ from LIST only in ouutput information format,
+ILIST also puts information about lowest and highest number of article
+in group.
+
+Command ULIST print only unsubscribed by you groups.

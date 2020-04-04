@@ -1,0 +1,2 @@
+#!/bin/sh
+sdba check user all | perl -n -e 'print "$1\n" if /^User (\S+):$/' | sort

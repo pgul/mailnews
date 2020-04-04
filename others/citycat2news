@@ -1,0 +1,86 @@
+#! /usr/bin/perl
+
+$approved='newsmaster@lucky.net';
+$bounce='citycat-bounce@news.lucky.net';
+$inews="/usr/local/news/bin/inews -h >> /var/log/citycat/citycat.log 2>&1";
+#$inews="cat >> /dev/null";
+$sendmail="/usr/bin/sendmail -i $bounce";
+$deforg="Citycat E-mail Service. http://www.citycat.ru";
+
+$inheader=1;
+$inskiphdr=0;
+$wassubject=0;
+$wasorganization=0;
+
+while (<STDIN>)
+{
+	if ($inheader)
+	{
+		if (/^\n$/)
+		{
+			$inheader=0;
+			if ($tonewsgroup && ($tonewsgroup eq $msgidnewsgroup))
+			{
+				$tonewsgroup =~ tr/[A-Z]/[a-z]/;
+				open OUT, "|$inews" || die "can't run inews\n";
+				print OUT "Newsgroups: citycat.$tonewsgroup\n";
+				print OUT "Approved: $approved\n";
+				print OUT "Subject: <none>\n" unless $wassubject;
+				print OUT "Organization: $deforg\n" unless $wasorganization;
+				print OUT "Distribution: lucky\n";
+			}
+			else
+			{
+				open OUT, "|$sendmail" || die "can't run sendmail\n";
+				foreach $i (@skiphdr)
+				{
+					print OUT $i;
+				}
+				print OUT "X-reason: tonewsgroup=\"$tonewsgroup\", msgidnewsgroup=\"$msgidnewsgroup\"\n";
+			}
+			foreach $i (@header)
+			{
+				print OUT $i;
+			}
+			print OUT $_;
+			next;
+		}
+		if (/^\s/)
+		{
+			if ($inskiphdr)
+			{
+				push(@skiphdr, $_);
+			}
+			else
+			{
+				push(@header, $_);
+			}
+			next;
+		}
+		if (/^(Received|To|Cc|Apparently-To|Newsgroups|Precedence):/i)
+		{
+			$tonewsgroup = $1 if /^To: \"([a-z0-9.\-_]+)\" <null\@citycat\.ru>\n$/i;
+			$inskiphdr=1;
+			push(@skiphdr, $_);
+			next;
+		}
+		$inskiphdr=0;
+		$wassubject=1 if /^Subject:/i;
+		$wasorganization=1 if /^Organization:/i;
+		$msgidnewsgroup = $1 if /^Message-Id:\s*<[0-9a-z.\-_]+\@([a-z0-9.\-_]+)>\s*\n$/i;
+		next if /^From /;
+		push (@header, $_);
+	}
+	else
+	{
+		print OUT $_;
+	}
+}
+if (close(OUT)==0)
+{
+	exit 0;
+#	exit $?/256 if $?/256;
+#	exit 2;
+}
+exit 0;
+

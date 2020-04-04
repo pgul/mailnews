@@ -1,0 +1,79 @@
+Використання команд LIST, ILIST та ULIST.
+
+По коммандах LIST, ILIST та ULIST без параметр╕в до Вас надсила╓ться 
+цей файл. Щоб отримати список груп необх╕дно вказати групи з яких 
+╕╓рарх╕й Вас ц╕кавлять, або зам╕сть ╕╓рарх╕й вказати ALL якщо Ви 
+бажа╓те отримати повний список (зважте, що цей список може бути 
+дуже великим).
+
+На сервер╕ ╕снують так╕ ╕╓рарх╕╖ груп (тут вказан╕ т╕льки назви ╕╓рах╕й
+першого та дек╕лькох другого порядку):
+
+alt
+alt.binaries
+bel
+bionet
+biz
+borland
+bukovina
+can
+citycat
+comp
+crimea
+cs-monolit
+de
+dnepr
+donbass
+elvisti
+eunet
+fido7
+fr
+gnu
+ieee
+it
+kharkov
+kherson
+kiev
+lucky
+medlux
+microsoft
+misc
+news
+nikolaev
+odessa
+pl
+rec
+relcom
+relcom.commerce
+ru.aviso
+sci
+sita
+soc
+speleo
+sumy
+talk
+tor
+ukr
+ukr.commerce
+ural
+
+В одн╕й команд╕ LIST ([IU]LIST) можна вказувати к╕лька ╕╓рархий, що Вас зац╕кавили,
+наприклад:
+
+LIST relcom ukr
+
+Також можна в╕дмовитись в╕д ╕╓рарх╕╖ нищого порядку, замовивши
+╕╓рарх╕ю вищого порядку. Для цього перед ц╕╓ю ╕╓рарх╕╓ю треба
+поставити знак '!', наприклад:
+
+LIST relcom !relcom.commerce
+
+LIST relcom !relcom.comp !relcom.commerce.food
+
+LIST all !alt !comp
+
+Команда ILIST за форматом визову н╕чим не в╕др╕зня╓ться в╕д команди LIST.
+Р╕зниця ╓ т╕льки у форм╕ вих╕дно╖ ╕нформац╕╖ - команда ILIST вида╓ додатково
+╕нформац╕ю про к╕льк╕сть статей у групах та ╖х номерах.
+
+Команда ULIST вида╓ т╕льки т╕ групи, на як╕ Ви не п╕дписан╕.

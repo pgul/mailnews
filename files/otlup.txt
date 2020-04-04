@@ -1,0 +1,13 @@
+News server <news@lucky.net> serve only Lucky Net customers.
+Access to the server disabled for you.
+Mail to your service provider or to the system administrator
+<newsmaster@lucky.net>.
+
+Сервер новостей <news@lucky.net> обслуживает только прямых абонентов
+Lucky Net.
+Доступ к серверу для Вас запрещен.
+Обращайтесь к своему провайдеру, в случае возникновения проблем - к
+системному администратору <newsmaster@lucky.net>
+
+			Lucky carrier,
+				Lucky Net newsmaster.

@@ -1,0 +1,80 @@
+#! /usr/bin/perl
+
+$moderator="newsmaster\@lucky.net";
+$newsmaster="newsmaster\@lucky.net";
+$sendmail="/usr/sbin/sendmail";
+
+$inheader=1;
+
+while (<>)
+{
+	if ($inheader)
+	{
+		next if /^From /;
+		if (/^[ \t]/)
+		{
+			$curheader .= $_;
+			chomp($curheader);
+			next;
+		}
+		if ($curheader =~ /^([a-zA-Z0-9_-]+):\s*(.*)$/)
+		{	($key, $value) = ($1, $2);
+			chomp($value);
+			$key =~ tr/A-Z/a-z/;
+			$hdr{$key}=$value;
+		}
+		push(@header, $_);
+		$curheader = $_;
+		chomp($curheader);
+		if ($_ eq "\n")
+		{	$inheader = 0;
+			$from = $hdr{"from"};
+			if (defined($hdr{"reply-to"}))
+			{	$from = $hdr{"reply-to"};
+			}
+			1 while ($from =~ s/\([^\(\)]*\)//g);
+			$from = $1 if $from =~ /<(.*)>/;
+			$from =~ s/^\s*(\S.*\S)\s*$/$1/;
+			if ($from =~ /^([a-zA-Z0-9\-_\+\@!%&\.]+)$/)
+			{	$from = $1;
+			} else
+			{	$from = "";
+			}
+			open(F, "|$sendmail -i $newsmaster $from") ||
+				die "Can't run sendmail: $!";
+			print F <<EOF;
+From: $moderator
+Subject: You've post message to read only newsgroup
+To: $from
+Reply-To: $newsmaster
+Organization: LuckyNet Ltd.
+References: $hdr{"message-id"}
+
+Hello.
+Your message rejected because you posted it to read only
+newsgroup. Please follow the rules of newsgroups.
+
+Ваше сообщение отвергнуто, потому что оно было отправлено
+в конференцию, существующую только для чтения. Пожалуйста,
+соблюдайте правила конференций, в которые Вы отправляете
+свои письма.
+
+Original message:
+=====
+EOF
+			foreach (@header)
+			{	print F $_ unless /^(Received|To|Path):/i;
+			}
+		}
+		next;
+	}
+	print F $_;
+}
+print F <<EOF;
+=====
+				Lucky carrier,
+					$newsmaster
+EOF
+close(F) || die "Can't send message: $!";
+exit(0);
+

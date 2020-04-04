@@ -1,0 +1,28 @@
+#! /bin/sh
+
+badusers=""
+for i in `/usr/local/news/bin/userlist`
+do
+	resp="`/usr/mnews/bin/bad.users.sh $i nomail 2>&1 1>/dev/null`" || \
+		badusers="$badusers $i"
+	if [ -n "`echo $resp | grep '^Warning:'`" ]; then
+		out="$out$resp\n"
+	fi
+done
+if [ -n "$badusers" -o -n "$out" ]; then
+	( 
+	echo -e "$out"
+	if [ -n "$badusers"]; then
+            for i in $badusers
+	    do
+		domain=`echo $i | awk -F @ '{ print $2 }'`
+		echo "> host -t mx $domain"
+		host -t mx $domain 2>&1
+		echo "> sdba check user $i"
+		sdba check user $i
+		echo "> sdba rmuser $i"
+		sdba rmuser $i
+	    done
+	fi ) | mail -s "bad users in mailnews base" newsmaster
+fi
+exit 0

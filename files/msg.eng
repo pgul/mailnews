@@ -1,0 +1,62 @@
+*** CANNOT OPEN FILE OF ACTIVE GROUPS, SORRY ***
+*** Group not defined.
+*** Group %s does not exist.
+*** Bad or missing number of article
+*** Request(s) ignored - a group not specified
+*** Article %s/%s already expired
+*** Can't send %s/%s article. System error.
+*** No commands recognized
+*** HELP IS NOT AVAILABLE, SORRY ***
+You are not subscribed to any group
+Results of request from %s
+Cannot create temp file, message lost
+The following groups does not exist:
+Illegal Newsgroups: header line
+inews: cannot submit the message
+*** cannot create temp file
+*** cannot reopen temp file
+*** cannot make a pipe
+*** MTA has returned code %d
+Group %s is subscribers only, skiped.
+Group %s is read only. Can't submit your article
+You can't subscribe to all group
+You can't unsubscribe from group %s
+	%s - done
+You are not subscribe to group %s
+You can not change subscribe mode for group %s
+Subscription to group %s disabled
+Error in I/O operation
+Your subscription suspended now
+Limit size for notify lists %d kb
+Your subscription resumed 
+Your INDEX request(s) failed
+List of %d articles for %d your INDEX request(s) sent to you
+You are already subscribed in this mode
+Mode changed to %s
+Crossposting to commercial and non-commercial group disabled !
+New group created at server:
+There is no articles in this group(s). Your INDEX request ignored.
+Can't sbmit your article. Crossposting disbled for group:
+Your access to server disabled now! Write to administrator.
+This format already set for you.
+Now set %s format of articles lists for you.
+new
+old
+Invalid format specification. Only NEW & OLD are legal specification.
+Hierarcies %s not found.
+Aging of your subscription already %s
+on
+off
+Aging of your subscription %s
+Your (S)FIND/DIGEST request(s) failed
+List of %d articles for %d your (S)FIND/DIGEST request(s) sent to you
+Xpost in commercial group allowed only for different hierarcies groups.
+Check newsgroups list.
+Unknown UUCP system name.
+UUCP system name incorrect.
+List help on now.
+List help off now.
+There is no such articles in this group(s). Your (S)FIND/DIGEST request ignored.
+New groups notification is on now.
+New groups notification is off now.
+You can't feed to more then %d newsgroups by one command. (R)FEED %s ignored.

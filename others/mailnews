@@ -1,0 +1,71 @@
+#! /usr/bin/perl
+
+# posting to ukr.nodes@mailnews.lucky.net
+
+# sendmail.cf:
+#Mmailnews,      P=/usr/mnews/bin/mailnews, F=mDFMhu8, S=11/31, R=21,
+#                T=DNS/RFC822/SMTP,
+#                A=mailnews $u
+
+# mailertable:
+#mailnews.lucky.net      mailnews:news.lucky.net
+
+$inews="/usr/local/news/bin/inews -h";
+
+$inheader=1;
+$inskiphdr=0;
+$wassubject=0;
+$wasdistrib=0;
+$wasorganization=0;
+
+open OUT, "|$inews" || die "can't run inews\n";
+
+foreach (@ARGV)
+{
+  s/\@.*$//;
+  $newsgroup .= "," if $newsgroup;
+  $newsgroup .= $_;
+}
+
+while (<STDIN>)
+{
+	if ($inheader)
+	{
+		if (/^\n$/)
+		{
+			$inheader=0;
+			print OUT "Newsgroups: $newsgroup\n";
+			print OUT "Subject: <none>\n" unless $wassubject;
+			print OUT "Organization: unknown\n" unless $wasorganization;
+			print OUT "Distribution: world\n" unless $wasdistrib;
+			print OUT "X-Return-Path: $path\n";
+			print OUT $_;
+			next;
+		}
+		if (/^[ \t]/)
+		{
+			print OUT $_ unless $inskiphdr;
+			next;
+		}
+		if (/^(Received)|(To)|(Cc)|(Apparently-To)|(Newsgroups):/i)
+		{
+			$inskiphdr=1;
+			next;
+		}
+		$inskiphdr=0;
+		$wassubject=1 if /^Subject:/i;
+		$wasorganization=1 if /^Organization:/i;
+		$wasdistrib=1 if /^Distribution:/i;
+		$path=$1 if /^From (\S+)/;
+		next if /^From /;
+	}
+	print OUT $_;
+}
+if (close(OUT)==0)
+{
+#	exit 0;
+	exit $?/256 if $?/256;
+	exit 2;
+}
+exit 0;
+

@@ -1,0 +1,249 @@
+Version 4.1.8 Released 24.11.95
+
+ * make initialization of lang variable before calling submit()
+
+ * fixed sig 11 trouble with damn articles from ts.kiev.ua
+
+Version 4.1.7 Released 24.07.95
+
+ * fix small error in newsserv, lister
+
+ * fix error it get_uaddr() function
+
+ * fix some small mistake with disabled domain
+
+Version 4.1.6 Released 22.07.95
+
+ * add DIGEST command to newsserver
+
+ * fix bug in set_uparam() for unknown user
+
+ * fix error in rm_tree() function
+
+ * fix error in sdba adddomain & subscription with UNKNOWN_DENIED
+
+ * fix rmdomain error when deliting last domain
+
+Version 4.1.5 Released 29.06.95
+
+ * Remove old unsensable XENIX checking
+
+ * for INDEX & (S)FIND print bigest article number
+
+ * make many small usefull changes in sources 
+
+ * write logfile in fuction log(*)
+
+Version 4.1.4 Released 26.06.95
+
+ * fix bug in sdba check active -d ... comand
+
+ * make different lock files for different modes in lister
+
+ * add MEMMAP to newgroups
+
+ * make checking in INDEX & (S)FIND for already seen articles
+
+Version 4.1.3 Released 21.05.95
+
+ * add MEMMAP method reading database for feeder & lister
+
+ * add release command to sdba
+
+ * add adddomain command to sdba & make some changes for UNKNOWN_DENIED
+
+ * add check domain empty to sdba
+
+ * fix error with empty domain under BSD
+
+ * add LOGFILE to daemon
+
+Version 4.1.2 Released 09.03.95
+
+ * add CNEWS mode for subscription
+
+Version 4.1.1 Released 04.03.95
+
+ * Fix many small bugs
+
+ * add to daemon posibilities for stop processing of queries
+
+Version 4.0.1 Released 08.05.94
+
+ * make nntpserv program & append some NNTP function to sdba
+
+ * make convert programs for avg's mailnews, vak's nserv-2.7 & my own mn-3.2
+
+ * extend abilities of FIND/SFIND & INDEX command in election of
+   articles range
+
+ * make more correct comparison for FIND/SFIND function.
+
+ * change structure of database and make corresponded changes in all programs
+
+###########################################################################
+
+Version 3.2.10 (final) Released 22.04.94
+
+ * fix some small errors
+
+Version 3.2.9a Released 20.02.94 (by apkom@ukrcom.kherson.ua)
+
+  * Make.linux and Make.xenix modified
+
+  * some Linux support added to conf.h
+
+  * sdba.h removed (all the definitions moved to conf.h)
+
+  * all C-code formatted whithin `indent`
+
+  * bug fixed in newsserv.c (XENIX part, call of ind_art)
+
+Version 3.2.9 Released 16.02.94
+
+ * Add adding field Precedece: to lister.c
+
+ * Fix some bugs in Make.*
+
+ * Fix some incorrects in README
+
+Version 3.2.8 Released 26.01.94
+
+ * Add posibility to disable new group lists
+
+ * fix some error on function list() newsserv.c
+
+Version 3.2.7 Released 22.01.94
+
+ * add posibility to disable list help
+
+ * fix error in sdba rebuild make in 3.2.1
+
+ * make sorting for subscribers list
+
+Version 3.2.6 Released 16.01.94
+
+ * Allow subscription for local user
+
+Version 3.2.5 Released 11.01.94
+
+ * lister not return exit code 0 always
+
+ * Change calling of lister for index/find
+
+ * Crossposting for commercial group allow only to diff hies
+
+ * Fix error in call do_index fo index command. Many thnx to Gena S. Rez
+
+Version 3.2.4 Released 07.01.94
+
+ * Make some primitive sort for snlist & reclist.
+
+ * Change format of check output in sdba utility
+
+ * Check command in sdba print user flags always
+
+ * Don't pass MFLAG_QUEUE to MTA in lister for INDEX or FIND lists
+
+ * Add information command version to sdba
+
+ * Remove checking for disabled domain in sdba.c
+
+ * Don't say Error on I/O if user.last does not exist
+
+ * correct some small errors
+
+Version 3.2.3 Released 24.12.93
+
+ * Fix some bug in sdba convert command
+
+ * Add FIND & SFIND command
+ 
+Version 3.2.1 Released 16.12.93
+
+ * Add subscription aging support
+
+ * Fix some uncorrect messages in FORGET mode
+
+ * Add defining of header line X-Class, Precedence or both
+
+ * Add -r(-f) sender to calling MTA in all cases for sendmail/smail
+
+ * Ported to BSD Unix
+
+ * Makes posible compile newsserver without directory(3) function.
+
+ * Makes more correct calling of sort. Many thnx to Oleg Voloshchuk.
+
+ * Fix bug in subs.c in disable/enable function. Many thnx to Vadim Getmanshchuk.
+
+ * Change bad.users. Now in this file must be a pattern in B-shell stile.
+
+ * Add Make.linux from Alexander P. Comlik
+
+ * Change rebuild() in sdba
+
+ * Add diagnostic message for unrecognasible hierarcies in LIST command
+
+ * Add case unsensitivity for parameters LIST command.
+
+ * Add checking of data base files owner's uid & gid in sdba
+
+ * Fix error in prepare Subject: line
+
+ * Don't use access() call for XENIX. Oleg Voloshchuk write that 
+   is not work correctly
+
+Version 3.1.24 Released 8.08.93
+
+ * Changing feeder for keep file togo in WORKDIR
+
+ * Add LOGFILE to feeder
+
+ * Correct date format in STATFILE
+
+ * Correct format of articles list in lister
+
+ * Add LOGFILE to lister
+
+ * Add LOGFILE to newsserv
+
+ * Fix error in sdba disable command. Many thanks to Andrew V. Miroshnichenko
+
+ * Define new fomat of articles lists as default, make possible to change
+   default format in dbsusbs.h
+
+ * Fix some mistake  
+
+Version 3.1.23 Released 21.07.93
+
+ * Add command ULIST to newsserver
+
+ * Join all form of LIST command to one function
+
+ * Add file 'moderators' for allow posting to READONLY groups for
+   moderators of this group. Define NEED_MODERATORS in conf.h if
+   you need this.
+
+ * change method of recognising commands in newsserver & sdba
+
+ * sdba check active now uderstand paterns for group hierarcies
+   as check group command.
+
+ * correct defaults for group need & group null commands
+
+ * fix error in sdba check active -d command
+
+
+Version 3.1.22 Released 18.07.93
+
+ * Add SCHECK command to newsserver
+
+ * Allow header line Supersedes: for injecting articles
+
+ * Add X-Return-Path: header line for all articles injecting to Cnews
+
+ * Add X-Ref: header line to all articles sent by server
+
+
+Version 3.1.21 Released 17.07.93

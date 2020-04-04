@@ -1,0 +1,94 @@
+
+USENET NEWS MAILSERVER
+
+This automatic mail server relays news articles from USENET via
+ordinary E-mail. All articles in USENET are separated into a number
+of hierarchyally organized groups like alt.folklore.computers or
+comp.unix.questions. You can obtain a list of groups using command
+(note that all commands should appear in the body of your request):
+
+	LIST
+or
+	LIST hierarchy
+
+Hierarchy is a partially specified name like comp.unix or talk.
+
+In order to get subscribed to any particular group, use command:
+
+	SUBSCRIBE group
+or
+	SUBSCRIBE group group...
+
+WARNING Do not try to subscribe on a lot of groups from the very beginning!
+	You can underestimate the volume of news' traffic.
+
+To unsubscribe use command:
+
+	UNSUBSCRIBE group...
+
+To cancel this service completely (say if you're going to leave for
+vacations and do not like to have your mailbox overflowed):
+
+	UNSUBSCRIBE all
+
+In order to check the current list of newsgroups you're subscribed
+on use the command
+
+	CHECK
+
+To request some specific articles from the archieve (they're usually
+saved for a week) use the following commands:
+
+	GROUP group
+	ARTICLE number
+	...
+
+The command GROUP selects a specific newsgroup to get articles from
+and the command ARTICLE retrieves the specifyed article from the selected
+group.
+
+Usually news mailserver periodically sends you a list of commands to
+retrieve new articles. This script contains GROUP commands and
+commented out ARTICLE commands. In order to get the articles you interested
+in simply uncomment corresponding commands and send it back to mailserver.
+This mode of operation is default and called "notify mode".
+
+Sometimes it's preferable to get all articles from a group immediately
+without confirmation. You can turn this mode on using the command
+
+	FEED group...
+
+instead of ordinary SUBSCRIBE. This mode of operation is called "feed mode".
+
+WARNING Never use feed mode if you're not completely sure that you need
+	*all* articles and your e-mail connection is stable and
+	permanent. This mode can easily cause e-mail traffic jams
+	making impossible to send or receive any electronic mail
+	at your machine. It may casue breaking link to your
+	machine by a net administrator, thus be careful.
+
+Warning: don't use user name "uucp" or "news" to receive news -
+	 server ignore this names.
+
+
+In order to submit an article you should send the article with the
+header field "Newsgroups:" containing the comma-separated list of
+newsgroups (all newsgroups should be valid) to the address $$.
+
+The default distribution of the message is the whole world, so you should
+think twice before sending your article. Remember it will be read by
+thousands or millions of readers around the world, so your message
+should not be offensive, should not violate copyright laws. Never write
+things already written by somebody. It's better to restrict area of
+distribution in a field as small as possible. You can do it using
+the header field "Distribution:". Valid distributions are:
+
+	world, eunet, su, ua, kiev
+
+If you want to use cnews you can mail to newsmaster@lucky.net
+about that and he will open access to gup for you. You can get
+cnews-packets unpacker for MSDOS from
+ftp://ftp.lucky.net/pub/msdos/uupc/unbatch.zip.
+
+Please report all problems and bugs to newsmaster@lucky.net.
+

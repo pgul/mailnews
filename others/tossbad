@@ -1,0 +1,8 @@
+#! /bin/sh
+cd /var/spool/mailnews/queue
+for i in bad.*
+do
+  if [ -s $i ]; then
+    mv $i `echo $i | sed -e s/^bad\.//`
+  fi
+done

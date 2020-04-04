@@ -1,0 +1,79 @@
+Использование команд LIST, ILIST и ULIST.
+
+По командам LIST, ILIST и ULIST без параметров Вам высылается этот файл.
+Чтобы получить список доступных групп необходимо указать из каких иерархий
+Вас интересуют группы, либо вместо иерархий указать ALL если Вы хотите
+получить полный список (учтите, что он может быть очень большим).
+
+На сервере существуют следующие иерархиии групп (здесь указаны только
+названия иерахий первого и для некоторых второго порядка):
+
+alt
+alt.binaries
+bel
+bionet
+biz
+borland
+bukovina
+can
+citycat
+comp
+crimea
+cs-monolit
+de
+dnepr
+donbass
+elvisti
+eunet
+fido7
+fr
+gnu
+ieee
+it
+kharkov
+kherson
+kiev
+lucky
+medlux
+microsoft
+misc
+news
+nikolaev
+odessa
+pl
+rec
+relcom
+relcom.commerce
+ru.aviso
+sci
+sita
+soc
+speleo
+sumy
+talk
+tor
+ukr
+ukr.commerce
+ural
+
+В одной команде LIST ([UI]LIST) можно указывать несколько интересующих Вас 
+иерархий, например:
+
+LIST relcom ukr
+
+Также можно отказываться от иерархии более низкого порядка, заказывая
+иерархию более высокого порядка. Для этого перед этой иерархией надо
+поставить знак '!', например:
+
+LIST relcom !relcom.commerce
+
+LIST relcom !relcom.comp !relcom.commerce.food
+
+LIST all !alt !comp
+
+Комманда ILIST по формату вызова ничем не отличается от команды LIST.
+Различия есть только в формате выдаваемой информации - команда ILIST
+выдает дополнительно информацию о количестве статей в группах и их
+номерах.
+
+Команда ULIST печатает только те группы, на которые Вы не подписаны.
